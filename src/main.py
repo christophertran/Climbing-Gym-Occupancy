@@ -12,6 +12,8 @@ def __main__():
     Gyms.append(ClimbingGym('Fort Worth'))
     Gyms.append(ClimbingGym('Grapevine'))
     Gyms.append(ClimbingGym('Plano'))
+    Gyms.append(ClimbingGym('OKC'))
+    Gyms.append(ClimbingGym('Norman'))
 
     firstTime = False
     chromeOpen = False
@@ -23,7 +25,6 @@ def __main__():
     while(True):
         print('\n=============================================================')
         print('The time is: ' + datetime.now().ctime())
-        # If it is between 6:00am-12:00am then we want to start up Chrome
         if(isDay() and not chromeOpen):
             print('It is daytime, starting Chrome.')
             start_chrome('https://summitgyms.com/tracker', headless=True)
@@ -31,7 +32,6 @@ def __main__():
         print('=============================================================\n')
 
         try:
-            # While it is between 6:00am-12:00am then we want to continue scraping information
             while(isDay()):
                 print('\n=============================================================')
                 
@@ -68,7 +68,7 @@ def __main__():
             kill_browser()
             chromeOpen = False
             hadError = True
-            error = ex
+            errorStr = ex
             print('Continuing the event loop.')
             print('&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&\n')
 
@@ -83,11 +83,21 @@ def __main__():
         time.sleep(1800)
 
 def isDay():
-    currentHour = int(datetime.now().strftime('%H'))
-    if(6 <= currentHour and currentHour <= 22):
-        return True
+    currentTime = datetime.now()
+    currentHour = int(currentTime.strftime('%H'))
+    currentWeekday = currentTime.strftime('%a')
+    if(currentWeekday == 'Sat' or currentWeekday == 'Sun'):
+        # If it is a weekend and between 9am-12am then return true
+        if(9 <= currentHour and currentHour <= 23):
+            return True
+        else:
+            return False
     else:
-        return False
+        # If it is a weekday and between 6am-12am then return true
+        if(6 <= currentHour and currentHour <= 23):
+            return True
+        else:
+            return False
 
 class ClimbingGym:
     def __init__(self, name):
