@@ -15,7 +15,7 @@ def __main__():
     Gyms.append(ClimbingGym('OKC'))
     Gyms.append(ClimbingGym('Norman'))
 
-    firstTime = False
+    firstTime = True
     chromeOpen = False
     hadError = False
     errorStr = ''
@@ -124,9 +124,9 @@ class ClimbingGym:
             'gym': self.name,
             'current': self.currentOccupancy,
             'max': self.maxCapacity,
-            'date': timeNow.strftime('%m-%d-%y'),
-            'time': timeNow.strftime('%H:%M'),
-            'weekday': timeNow.strftime('%a')
+            'weekday': timeNow.strftime('%a'),
+            'time': timeNow.strftime('%H:%M:%S'),
+            'timefull': timeNow.strftime('%Y-%m-%d %H:%M:%S')
         }
 
 __main__()
