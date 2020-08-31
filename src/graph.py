@@ -13,13 +13,41 @@ TIME = 'time'
 DATE = 'date'
 WEEKDAY = 'weekday'
 
-# TODO
-# I want for each gym, 7 bar graphs, one for each day of the week. 
-# Each bar graph will have hour increments where they take the average of the data in the file for that weekday
-# And graph that for that hour in that bucket for all hours between 6am-12am for Weekdays, and 9am-12am for Weekends
+TimeRanges = [
+    ['6:00', '6:59'],
+    ['7:00', '7:59'],
+    ['8:00', '8:59'],
+    ['9:00', '9:59'],
+    ['10:00', '10:59'],
+    ['11:00', '11:59'],
+    ['12:00', '12:59'],
+    ['13:00', '13:59'],
+    ['14:00', '14:59'],
+    ['15:00', '15:59'],
+    ['16:00', '16:59'],
+    ['17:00', '17:59'],
+    ['18:00', '18:59'],
+    ['19:00', '19:59'],
+    ['20:00', '20:59'],
+    ['21:00', '21:59'],
+    ['22:00', '22:59'],
+    ['23:00', '23:59']
+]
+
+TimeCategories = [
+    '6:00', '7:00', 
+    '8:00', '9:00', 
+    '10:00', '11:00', 
+    '12:00', '13:00', 
+    '14:00', '15:00', 
+    '16:00', '17:00', 
+    '18:00', '19:00', 
+    '20:00', '21:00', 
+    '22:00', '23:00'
+]
 
 def __main__():
-    data = pd.read_csv('GymOccupancyInfo.csv')
+    data = pd.read_csv('GymOccupancyInfoOLD.csv', index_col='time', parse_dates=True)
 
     gyms = []
     gymNames = data[GYM].unique()
@@ -33,7 +61,9 @@ def __main__():
     for gym in gyms:
         gym.currGymData = data.loc[(data[GYM] == gym.name)]
 
-    gyms[0].graphData()
+    # Create a graph for each weekday for each gym
+    for gym in gyms:
+        gym.graphData()
 
 class ClimbingGym:
     def __init__(self, name, weekdays):
@@ -41,29 +71,47 @@ class ClimbingGym:
         self.currGymData = []
         self.weekdays = weekdays
 
-    def getDataByWeekday(self, weekday):
-        return self.currGymData.loc[self.currGymData[WEEKDAY] == weekday]
-
-    def graphByWeekday(self, weekday):
-        dataByWeekday = self.getDataByWeekday(weekday)
-        currentOccupancy = self.getCurrentOccupancy(dataByWeekday)
-        currentTime = self.getCurrentTime(dataByWeekday)
-
-        plt.figure(1)
-        plt.plot(currentOccupancy)
-        plt.xticks(range(len(currentTime)), currentTime)
-        plt.locator_params(axis='x', nbins=20)
-        plt.title('Occupancy vs Time of Day - ' + self.name + ' - ' + weekday)
-        plt.show()
-
-    def getCurrentOccupancy(self, data):
-        return data[CURRENT].to_numpy()
-    
-    def getCurrentTime(self, data):
-        return data[TIME].to_numpy()
-
     def graphData(self):
         for weekday in self.weekdays:
-            self.graphByWeekday(weekday)
+            self.__graphByWeekday(weekday)
+
+    def __graphByWeekday(self, weekday):
+        allDataByWeekday = self.__getAllDataByWeekday(weekday)
+        occupancyDataByWeekday = self.__getOccupancyDataByWeekday(weekday, allDataByWeekday)
+
+        y_pos = np.arange(len(TimeCategories))
+        rects = plt.bar(y_pos, occupancyDataByWeekday, align='center', alpha=0.5, width=1.0, facecolor='black', edgecolor='black')
+        plt.xticks(y_pos, TimeCategories)
+        plt.ylabel('Occupancy')
+        plt.xlabel('Time')
+        plt.title('Occupancy over time - ' + weekday + ' - ' + self.name)
+        self.__labelPlot(rects)
+        plt.show()
+
+    def __getAllDataByWeekday(self, weekday):
+        return self.currGymData.loc[self.currGymData[WEEKDAY] == weekday]
+    
+    def __getOccupancyDataByWeekday(self, weekday, data):
+        occupancyDataByWeekday = []
+        for timeRange in TimeRanges:
+            dataBetweenTimeRange = self.__getOccupancyDataByWeekdayBetweenTimeRange(timeRange, data)
+            if(dataBetweenTimeRange[CURRENT].sum() != 0):
+                occupancyDataByWeekday.append(round(dataBetweenTimeRange[CURRENT].sum()/dataBetweenTimeRange[CURRENT].count()))
+            else:
+                occupancyDataByWeekday.append(0.0)
+        return occupancyDataByWeekday
+
+    def __getOccupancyDataByWeekdayBetweenTimeRange(self, timeRange, data):
+        return data.between_time(timeRange[0], timeRange[1])
+
+    def __labelPlot(self, rects, xpos='center'):
+        xpos = xpos.lower()  # normalize the case of the parameter
+        ha = {'center': 'center', 'right': 'left', 'left': 'right'}
+        offset = {'center': 0.5, 'right': 0.57, 'left': 0.43}  # x_txt = x + w*off
+
+        for rect in rects:
+            height = rect.get_height()
+            plt.text(rect.get_x() + rect.get_width()*offset[xpos], 1.01*height,
+                    '{}'.format(height), ha=ha[xpos], va='bottom')
 
 __main__()
