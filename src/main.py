@@ -1,3 +1,10 @@
+# How to make venv
+# python -m venv venv
+# cd venv/Scripts
+# . activate
+# cd ../
+# now you are sitting venv folder using python venv.
+
 from helium import *
 from datetime import datetime
 import pandas as pd

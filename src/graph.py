@@ -47,7 +47,7 @@ TimeCategories = [
 ]
 
 def __main__():
-    data = pd.read_csv('GymOccupancyInfo.csv', index_col='time', parse_dates=True)
+    data = pd.read_csv('GymOccupancyInfoOLD.csv', index_col='time', parse_dates=True)
 
     gyms = []
     gymNames = data[GYM].unique()
